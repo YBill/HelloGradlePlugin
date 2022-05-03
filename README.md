@@ -22,10 +22,10 @@
 > 您可以为您的插件创建一个单独的项目。该项目生成并发布一个 JAR，然后您可以在多个构建中使用它并与他人共享。通常，这个 JAR 可能包含一些插件，或者将几个相关的任务类捆绑到一个库中。或者两者的某种组合。
 
 
-下面分别实现这三种编写 Gradle 插件的流程。
+#### 下面分别实现这三种编写 Gradle 插件的流程。
 
 
-##### 构建脚本
+##### 1、构建脚本
 
 这种方式是最简单的，一般用于比较简单的逻辑，只需要修改 build.gradle 文件即可。
 
@@ -78,4 +78,65 @@ apply from: './myplugin.gradle'
 greeting {
     message = "new message..."
 }
+```
+
+##### 2、buildSrc 项目
+
+buildSrc 编写 gradle 插件项目主要也是用在当前项目中，不能被外部的项目引用，它的创建有一套固定的流程，步骤如下：
+
+（1）在项目根目录下新建一个 buildSrc 目录，然后点击 Android Studio 的 Make Project 按钮编译项目，IDE 会自动在 buildSrc 目录下生成 .gradle 和 build 文件
+
+（2）在 buildSrc 目录下新建 build.gradle 文件并加入如下代码：
+
+```
+apply plugin: 'java-library'
+
+sourceSets {
+    main {
+        java{
+            srcDir 'src/main/java'
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+```
+(3) 在 buildSrc 目录下创建 src 目录，并在 src 目录下分别创建 main/java 和 main/resources 目录
+
+(4) 在 src/main/java 目录下编写插件代码（注意插件是个java类），比如这里我们创建一个简单的插件类，代码如下：
+
+```
+package com.bill.inner.plugin;
+
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+
+class MyPlugin implements Plugin<Project> {
+
+    @Override
+    public void apply(Project target) {
+        System.out.println("Hello this is a inner gradle plugin...");
+    }
+}
+```
+
+（5）配置插件。要配置插件，需要在 src/main/resources 目录下再创建 META-INF/gradle-plugins 目录，并在该目录中添加一个文件，名字为`使用时插件名+.properties`，如 com.bill.inner.plugins.properties，该文件内容如下：
+
+```
+implementation-class=com.bill.inner.plugin.MyPlugin // 第4步中插件全路径
+```
+
+以上所有步骤都做完之后就完成了，使用时在 module 的 build.gradle 中添加 `apply plugin: 'com.bill.inner.plugin'` 文件即可
+
+点击 Android Studio 的 Make Project 按钮编译项目，在 Build 下打印出如下日志
+
+```
+> Configure project :app
+Hello this is a inner gradle plugin...
 ```
