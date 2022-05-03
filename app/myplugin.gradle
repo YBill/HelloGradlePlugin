@@ -1,0 +1,25 @@
+class MyPluginExtension {
+    // 为插件扩展定义一个字符串类型的变量
+    String message = "Hello this is my custom plugin..."
+}
+
+// gradle自定义的插件必须继承Plugin接口
+class GreetingPlugin implements Plugin<Project> {
+
+    @Override
+    void apply(Project project) {
+        // 创建插件扩展，greeting为插件扩展的名称，可以在gradle文件其他地方使用
+        def extension = project.extensions.create('greeting', MyPluginExtension)
+
+        // 任务名为 helloPlugin
+        project.task('helloPlugin') {
+            doLast {
+                // 插件的任务就是打印message信息
+                println extension.message
+            }
+        }
+    }
+}
+
+// 使用这个自定义的插件
+apply plugin: GreetingPlugin

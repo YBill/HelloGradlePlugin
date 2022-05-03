@@ -1,0 +1,32 @@
+apply plugin: 'groovy'
+apply plugin: 'maven-publish'
+
+repositories {
+    mavenLocal()
+}
+
+dependencies {
+    implementation gradleApi()
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            publish2Local(MavenPublication) {
+                groupId = "com.bill.library"
+                artifactId = "mylib"
+                version = "1.0.0"
+
+                from components.java
+
+            }
+
+        }
+
+        repositories {
+            maven {
+                url = "../repo"
+            }
+        }
+    }
+}
